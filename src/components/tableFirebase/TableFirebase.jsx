@@ -55,6 +55,8 @@ import { async } from "@firebase/util";
 
 
 const List = () => {
+  const [nodes, setNodes] = useState({});
+  const [isLoading, setLoading] = useState(true);
 
   const correoUsuario = "lgrandab@gmail.com"
 
@@ -130,83 +132,47 @@ const List = () => {
   }
   //Recuperar el contenido de un solo documento
   async function getData() {
-    const docRef = doc(db, "usuarios/lgrandab@gmail.com/cities", "SF");
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data().name);
-    } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
-    }
-  }
-
-  async function getData3() {
-
-    const q = query(collection(db, "cities"), where("capital", "==", true));
-
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach((doc) => {
+    var rows = [];
+    var docRef = collection(db, "proyectos-investigacion");
+    const docSnap = await getDocs(docRef);
+    docSnap.forEach((doc) => {
       // doc.data() is never undefined for query doc snapshots
-      console.log(doc.id, " => ", doc.data());
+      //console.log(doc.id, " => ", doc.data().proyectos.equipos);
+      try {
+          rows.push({
+          id: doc.id,
+          capacitacion: doc.data().proyectos.capacitacion,
+          honorarios: doc.data().proyectos.honorarios,
+          observaciones: doc.data().proyectos.observaciones,
+          totalGastos: doc.data().proyectos.totalGastosDirectos,
+          viaticos: doc.data().proyectos.viaticosSubsistenciasMovilizacion,
+          status: "Pending",
+        })
+        }
+        catch (e) {
+            console.log(e);
+        }
     });
+    //console.log(rows);
+    return rows;
   }
 
-  const rows = [
-    {
-      id: 1143155,
-      product: "Innovación",
-      img: "https://m.media-amazon.com/images/I/81bc8mA3nKL._AC_UY327_FMwebp_QL65_.jpg",
-      customer: "Luis Granda",
-      date: "1 Enero",
-      amount: 785,
-      method: "Cash on Delivery",
-      status: "Approved",
-    },
-    {
-      id: 2235235,
-      product: "Proyecto Ascendere",
-      img: "https://m.media-amazon.com/images/I/31JaiPXYI8L._AC_UY327_FMwebp_QL65_.jpg",
-      customer: "Michael Doe",
-      date: "1 Febrero",
-      amount: 900,
-      method: "Online Payment",
-      status: "Pending",
-    },
-    {
-      id: 2342353,
-      product: "Redragon S101",
-      img: "https://m.media-amazon.com/images/I/71kr3WAj1FL._AC_UY327_FMwebp_QL65_.jpg",
-      customer: "John Smith",
-      date: "1 Marzo",
-      amount: 35,
-      method: "Cash on Delivery",
-      status: "Pending",
-    },
-    {
-      id: 2357741,
-      product: "Razer Blade 15",
-      img: "https://m.media-amazon.com/images/I/71wF7YDIQkL._AC_UY327_FMwebp_QL65_.jpg",
-      customer: "Jane Smith",
-      date: "1 Abril",
-      amount: 920,
-      method: "Online",
-      status: "Approved",
-    },
-    {
-      id: 2342355,
-      product: "ASUS ROG Strix",
-      img: "https://m.media-amazon.com/images/I/81hH5vK-MCL._AC_UY327_FMwebp_QL65_.jpg",
-      customer: "Harold Carol",
-      date: "1 Mayo",
-      amount: 2000,
-      method: "Online",
-      status: "Pending",
-    },
-  ];
 
+  useEffect(() => {
+    getAllNodes();
+  }, []);
 
+  const getAllNodes = () => {
+    getData().then((response) => {
+      setNodes(response);
+      setLoading(false);
+    });
+  };
+  if (isLoading) {
+    return <div className="App">Cargando...</div>;
+  }
   return (
+    
     <div className="Container">
 
 
@@ -217,26 +183,28 @@ const List = () => {
             <TableRow>
               <TableCell className="tableCell">Proyecto de Investigación</TableCell>
               <TableCell className="tableCell">Identificador</TableCell>
-              <TableCell className="tableCell">Docente</TableCell>
-              <TableCell className="tableCell">Fecha</TableCell>
-              <TableCell className="tableCell">Cantidad</TableCell>
+              <TableCell className="tableCell">capacitacion</TableCell>
+              <TableCell className="tableCell">honorarios</TableCell>
+              <TableCell className="tableCell">observaciones</TableCell>
+              <TableCell className="tableCell">Viaticos</TableCell>
               {/* <TableCell className="tableCell">Payment Method</TableCell> */}
               <TableCell className="tableCell">Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
+            {nodes.map((row) => (
               <TableRow key={row.id}>
                 <TableCell className="tableCell">{row.id}</TableCell>
                 <TableCell className="tableCell">
                   <div className="cellWrapper">
                     {/* <img src={row.img} alt="" className="image" /> */}
-                    {row.product}
+                    {row.capacitacion}
                   </div>
                 </TableCell>
-                <TableCell className="tableCell">{row.customer}</TableCell>
-                <TableCell className="tableCell">{row.date}</TableCell>
-                <TableCell className="tableCell">{row.amount}</TableCell>
+                <TableCell className="tableCell">{row.honorarios}</TableCell>
+                <TableCell className="tableCell">{row.observaciones}</TableCell>
+                <TableCell className="tableCell">{row.totalGastos}</TableCell>
+                <TableCell className="tableCell">{row.viaticos}</TableCell>
                 {/* <TableCell className="tableCell">{row.method}</TableCell> */}
                 <TableCell className="tableCell">
                   <span className={`status ${row.status}`}>{row.status}</span>
@@ -251,11 +219,32 @@ const List = () => {
 
       <button onClick={getCities}> Set cities</button>
       <button onClick={getData}> get Data</button>
-      <button onClick={getData3}> get Data 3</button>
+     
     </div>
 
   );
+
+  
 };
 
 export default List;
 
+/**
+ *  <button onClick={getData3}> get Data 3</button>
+ * 
+ * 
+ * async function getData3() {
+
+    const q = query(collection(db, "cities"), where("capital", "==", true));
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      console.log(doc.id, " => ", doc.data());
+    });
+  }
+
+  
+
+
+ */
